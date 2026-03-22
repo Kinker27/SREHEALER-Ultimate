@@ -14,7 +14,24 @@
 * **✨ Cinematic DX:** A high-fidelity, glassmorphism interface designed for the modern developer experience.
 
 ---
+# 🏗️ Technical Architecture & Neural Flow
 
+<p align="center">
+  <img src="Architecture.png" width="850" alt="SREHEALER System Architecture">
+  <br>
+  <b>Figure 1: The 4 Pillars of Autonomous Recovery</b> 
+  <br><i>Visualizing the User Interface, Neural Execution, and Contextual Audit Tiers.</i>
+</p>
+
+---
+
+<p align="center">
+  <img src="Flow.png" width="850" alt="Life of a Neural Patch Flow">
+  <br>
+  <b>Figure 2: The Agentic Self-Correction Loop (Life of a Neural Patch)</b>
+  <br><i>A deep dive into the RAG Ingestion and the recursive "Rejection Loop" for verified delivery.</i>
+</p>
+---
 ## 🛠️ Tech Stack
 
 - **AI Core:** Gemini 2.5 Flash (Neural Reasoning)
