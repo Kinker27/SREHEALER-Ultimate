@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SREHEALER // CORE_HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #030014; --accent: #7c3aed; --green: #4ade80; --border: rgba(255,255,255,0.08); }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg); color: #fff; margin: 0; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden; position: relative;
+        }
+
+        /* Moving Nebula Background */
+        .nebula {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% -20%, #2e1065, transparent);
+            z-index: -2;
+        }
+
+        /* Cyber Grid Overlay */
+        .grid {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(124, 58, 237, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(124, 58, 237, 0.05) 1px, transparent 1px);
+            background-size: 60px 60px; z-index: -1; pointer-events: none;
+        }
+
+        .hero { padding: 120px 20px 60px; text-align: center; max-width: 800px; }
+        h1 { font-size: 3.8rem; margin: 0; letter-spacing: -3px; line-height: 1; }
+        h1 span {
+            background: linear-gradient(90deg, var(--accent), var(--green));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        p { color: #94a3b8; font-size: 1.1rem; margin-top: 25px; letter-spacing: 1px; }
+
+        /* Language Cards Grid */
+        .container {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px; width: 90%; max-width: 1100px; margin-bottom: 80px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 24px; padding: 50px 30px;
+            text-decoration: none; color: inherit;
+            backdrop-filter: blur(12px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center;
+            position: relative; overflow: hidden;
+        }
+
+        /* Hover Glow Effect */
+        .card::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, var(--accent), transparent);
+            opacity: 0; transition: 0.4s; z-index: -1;
+        }
+
+        .card:hover {
+            transform: translateY(-12px) scale(1.02);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.15);
+        }
+        .card:hover::before { opacity: 0.1; }
+
+        .card img { width: 65px; margin-bottom: 25px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+        .card .name { font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; color: #e2e8f0; }
+        .card .desc { font-size: 0.7rem; color: #64748b; margin-top: 8px; text-transform: uppercase; }
+
+        /* Scanning Line Animation */
+        .scan-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="nebula"></div>
+<div class="grid"></div>
+
+<div class="hero">
+    <h1>Autonomous <span>AI Healing.</span></h1>
+    <p>Deploy the SREHEALER agent to your runtime environment.</p>
+</div>
+
+<div class="container">
+    <a href="dashboard.html?lang=python" class="card">
+        <div class="scan-line"></div>
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg">
+        <div class="name">PYTHON</div>
+        <div class="desc">Neural Logic Analysis</div>
+    </a>
+
+    <a href="dashboard.html?lang=cpp" class="card">
+        <div class="scan-line"></div>
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg">
+        <div class="name">C++</div>
+        <div class="desc">Memory Safety Audit</div>
+    </a>
+
+    <a href="dashboard.html?lang=java" class="card">
+        <div class="scan-line"></div>
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg">
+        <div class="name">JAVA</div>
+        <div class="desc">JVM Runtime Recovery</div>
+    </a>
+
+    <a href="dashboard.html?lang=javascript" class="card">
+        <div class="scan-line"></div>
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg">
+        <div class="name">JAVASCRIPT</div>
+        <div class="desc">Asynchronous Healing</div>
+    </a>
+</div>
+
+<div style="font-size: 0.6rem; color: #444; letter-spacing: 3px;">SRE_HEALER // VERSION_6.0_STABLE</div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SRE Terminal | Proactive Recovery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --bg: #030014; --accent: #7c3aed; --border: rgba(255,255,255,0.08); --green: #4ade80; }
+
+        /* Animated Background */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at 50% 50%, #0a051d 0%, #030014 100%);
+            color: #fff; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: transparent radial-gradient(circle, rgba(124, 58, 237, 0.04) 0%, transparent 40%);
+            animation: nebulaMove 30s linear infinite; z-index: -1;
+        }
+
+        @keyframes nebulaMove { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Grid Overlay */
+        .cyber-grid {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px; z-index: -1; pointer-events: none;
+        }
+
+        header { padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); }
+        header span { background: linear-gradient(90deg, #7c3aed, #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 1.1rem; }
+
+        .workspace { flex: 1; display: flex; gap: 15px; padding: 15px; overflow: hidden; }
+        .pane { flex: 1; display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.02); border-radius: 16px; border: 1px solid var(--border); backdrop-filter: blur(12px); transition: all 0.4s ease; overflow: hidden; }
+        .pane.analyzing { border-color: var(--accent); box-shadow: 0 0 30px rgba(124, 58, 237, 0.15); }
+
+        .label { padding: 12px 20px; font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); letter-spacing: 1px; }
+
+        textarea, #healedView { flex: 1; background: transparent; border: none; padding: 25px; font-family: 'JetBrains Mono'; font-size: 0.85rem; line-height: 1.6; outline: none; resize: none; color: #e2e8f0; }
+        textarea { color: #4ade80; }
+        #healedView { color: #a5b4fc; white-space: pre-wrap; overflow-y: auto; }
+
+        .v-badge { background: rgba(74, 222, 128, 0.1); color: var(--green); border: 1px solid var(--green); padding: 2px 8px; border-radius: 4px; font-size: 0.55rem; display: none; margin-left: 10px; }
+
+        .footer { height: 200px; display: flex; padding: 0 15px 15px 15px; gap: 15px; }
+        .logs { flex: 2; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); padding: 15px; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #94a3b8; overflow-y: auto; }
+        .chart-box { flex: 1; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); padding: 10px; }
+        .log-entry { margin-bottom: 6px; border-left: 2px solid var(--accent); padding-left: 10px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
+
+        input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="cyber-grid"></div>
+
+<header>
+    <div>SRE<span>HEALER</span> // AGENTIC_CORE_V6</div>
+    <div style="font-size: 0.65rem; color: #f59e0b; display: flex; gap: 20px; align-items: center;">
+        <label>SECURITY SHIELD <input type="checkbox" id="secMode"></label>
+        <label>FAST MODE <input type="checkbox" id="fastMode"></label>
+        <span id="syncStat" style="color:var(--green); font-weight: 800;">● IDLE</span>
+    </div>
+</header>
+
+<div class="workspace">
+    <div class="pane"><span class="label">Ingress Buffer</span><textarea id="editor" oninput="handleTyping()"></textarea></div>
+    <div id="repairPane" class="pane">
+        <span class="label">AI Neural Correction <span id="vBadge" class="v-badge">✓ VERIFIED</span></span>
+        <div id="healedView"></div>
+    </div>
+</div>
+
+<div class="footer">
+    <div class="logs" id="auditLog"></div>
+    <div class="chart-box"><canvas id="debtChart"></canvas></div>
+</div>
+
+<script>
+    let selectedLang = new URLSearchParams(window.location.search).get('lang') || 'python';
+    let typingTimer;
+
+    // Debt Chart Initialization
+    const ctx = document.getElementById('debtChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: { labels: ['M','T','W','T','F','S','S'], datasets: [{ label: 'Debt', data: [85,72,80,55,42,28,12], borderColor: '#7c3aed', tension: 0.4, borderWidth: 2, pointRadius: 0 }] },
+        options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#334155', font: { size: 9 } } } } }
+    });
+
+    function handleTyping() {
+        document.getElementById('syncStat').innerText = "● COMPUTING...";
+        document.getElementById('repairPane').classList.add('analyzing');
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => requestHeal(), 1200);
+    }
+
+    async function requestHeal() {
+        const code = document.getElementById('editor').value;
+        const sec = document.getElementById('secMode').checked;
+        const fast = document.getElementById('fastMode').checked;
+        if(!code.trim()) return;
+
+        addLog(sec ? "SHIELD: Scanning for vulnerabilities..." : "AGENT: Correlating project context...");
+
+        try {
+            const res = await fetch('http://127.0.0.1:5000/propose_fix', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ code, language: selectedLang, securityMode: sec, fastMode: fast })
+            });
+            const data = await res.json();
+
+            document.getElementById('healedView').innerText = data.proposed;
+            document.getElementById('vBadge').style.display = data.verified ? 'inline-block' : 'none';
+            document.getElementById('repairPane').classList.remove('analyzing');
+            document.getElementById('syncStat').innerText = "● IDLE";
+            addLog(`AUDIT: ${data.reason} (${data.confidence || 90}%)`);
+        } catch (e) {
+            addLog("ERROR: Core Latency detected.");
+            document.getElementById('repairPane').classList.remove('analyzing');
+        }
+    }
+
+    function addLog(msg) {
+        const log = document.getElementById('auditLog');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = `<span style="color:var(--accent)">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+        log.prepend(entry);
+    }
+</script>
+</body>
+</html>
