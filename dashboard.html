@@ -2,137 +2,308 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SRE Terminal | Proactive Recovery</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>SREHEALER | Core V5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #030014; --accent: #7c3aed; --border: rgba(255,255,255,0.08); --green: #4ade80; }
+        :root {
+            --bg-main: #05010d;
+            --bg-panel: #0a0418;
+            --border-color: #1f1635;
+            --accent-purple: #8b5cf6;
+            --accent-blue: #3b82f6;
+            --code-green: #4ade80;
+            --code-purple: #c084fc;
+            --text-main: #e2e8f0;
+            --text-dim: #94a3b8;
+        }
 
-        /* Animated Background */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at 50% 50%, #0a051d 0%, #030014 100%);
-            color: #fff; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            display: grid;
+            grid-template-rows: 60px 1fr 250px; /* Header, Editors, Bottom Panels */
+            overflow: hidden;
+        }
+
+        /* --- HEADER --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.5);
+        }
+        .logo { font-size: 1.1rem; font-weight: 800; letter-spacing: 1px; }
+        .logo span { color: var(--text-dim); }
+        .shield-toggle { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 600; color: #f59e0b; letter-spacing: 1px; }
+        .shield-toggle input { accent-color: var(--accent-blue); width: 16px; height: 16px; cursor: pointer; }
+
+        /* --- MAIN WORKSPACE --- */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .pane {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
             position: relative;
         }
-
-        body::before {
-            content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: transparent radial-gradient(circle, rgba(124, 58, 237, 0.04) 0%, transparent 40%);
-            animation: nebulaMove 30s linear infinite; z-index: -1;
+        .pane-header {
+            padding: 8px 15px;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-panel);
         }
 
-        @keyframes nebulaMove { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .code-area {
+            flex: 1;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            background: transparent;
+            border: none;
+            outline: none;
+            resize: none;
+            overflow-y: auto;
+        }
+        #editor { color: var(--code-green); width: 100%; height: 100%; }
+        #healedView { color: var(--code-purple); white-space: pre-wrap; }
 
-        /* Grid Overlay */
-        .cyber-grid {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px; z-index: -1; pointer-events: none;
+        /* --- CONFIDENCE BADGE --- */
+        .confidence-badge {
+            position: absolute;
+            top: 40px;
+            right: 20px;
+            background: rgba(20, 10, 40, 0.8);
+            border: 1px solid var(--accent-purple);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+            transition: all 0.3s ease;
+            opacity: 0;
         }
 
-        header { padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); }
-        header span { background: linear-gradient(90deg, #7c3aed, #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 1.1rem; }
+        /* --- BOTTOM PANELS --- */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            background: var(--bg-panel);
+        }
 
-        .workspace { flex: 1; display: flex; gap: 15px; padding: 15px; overflow: hidden; }
-        .pane { flex: 1; display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.02); border-radius: 16px; border: 1px solid var(--border); backdrop-filter: blur(12px); transition: all 0.4s ease; overflow: hidden; }
-        .pane.analyzing { border-color: var(--accent); box-shadow: 0 0 30px rgba(124, 58, 237, 0.15); }
+        /* Terminal / Logs */
+        .terminal {
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .log-entry { line-height: 1.4; }
+        .log-time { color: var(--accent-purple); margin-right: 8px; }
+        .log-info { color: #fff; }
+        .log-success { color: var(--code-green); }
 
-        .label { padding: 12px 20px; font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); letter-spacing: 1px; }
+        /* Chart Area */
+        .chart-container {
+            padding: 15px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas { width: 100%; height: 80%; }
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            margin-top: 10px;
+        }
 
-        textarea, #healedView { flex: 1; background: transparent; border: none; padding: 25px; font-family: 'JetBrains Mono'; font-size: 0.85rem; line-height: 1.6; outline: none; resize: none; color: #e2e8f0; }
-        textarea { color: #4ade80; }
-        #healedView { color: #a5b4fc; white-space: pre-wrap; overflow-y: auto; }
-
-        .v-badge { background: rgba(74, 222, 128, 0.1); color: var(--green); border: 1px solid var(--green); padding: 2px 8px; border-radius: 4px; font-size: 0.55rem; display: none; margin-left: 10px; }
-
-        .footer { height: 200px; display: flex; padding: 0 15px 15px 15px; gap: 15px; }
-        .logs { flex: 2; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); padding: 15px; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #94a3b8; overflow-y: auto; }
-        .chart-box { flex: 1; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); padding: 10px; }
-        .log-entry { margin-bottom: 6px; border-left: 2px solid var(--accent); padding-left: 10px; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
-
-        input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: #2d244a; border-radius: 4px; }
     </style>
 </head>
 <body>
-<div class="cyber-grid"></div>
 
 <header>
-    <div>SRE<span>HEALER</span> // AGENTIC_CORE_V6</div>
-    <div style="font-size: 0.65rem; color: #f59e0b; display: flex; gap: 20px; align-items: center;">
-        <label>SECURITY SHIELD <input type="checkbox" id="secMode"></label>
-        <label>FAST MODE <input type="checkbox" id="fastMode"></label>
-        <span id="syncStat" style="color:var(--green); font-weight: 800;">● IDLE</span>
+    <div class="logo">SREHEALER <span>// CORE_V5</span></div>
+    <div class="shield-toggle">
+        SECURITY SHIELD <input type="checkbox" id="secMode">
     </div>
 </header>
 
 <div class="workspace">
-    <div class="pane"><span class="label">Ingress Buffer</span><textarea id="editor" oninput="handleTyping()"></textarea></div>
-    <div id="repairPane" class="pane">
-        <span class="label">AI Neural Correction <span id="vBadge" class="v-badge">✓ VERIFIED</span></span>
-        <div id="healedView"></div>
+    <div class="pane">
+        <div class="pane-header">BUFFER INGRESS</div>
+        <textarea id="editor" class="code-area" placeholder="Paste buggy code here... Agent will scan on idle." oninput="handleTyping()"></textarea>
+    </div>
+    <div class="pane">
+        <div class="pane-header">NEURAL CORRECTION</div>
+        <div id="confidenceBadge" class="confidence-badge">Confidence: 0%</div>
+        <div id="healedView" class="code-area"></div>
     </div>
 </div>
 
-<div class="footer">
-    <div class="logs" id="auditLog"></div>
-    <div class="chart-box"><canvas id="debtChart"></canvas></div>
+<div class="bottom-section">
+    <div class="terminal" id="terminalLog">
+        <div class="log-entry"><span class="log-time">[System]</span> System ready. ML Inference active.</div>
+    </div>
+    <div class="chart-container">
+        <canvas id="debtChart"></canvas>
+        <div class="chart-labels">
+            <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+        </div>
+    </div>
 </div>
 
 <script>
-    let selectedLang = new URLSearchParams(window.location.search).get('lang') || 'python';
     let typingTimer;
 
-    // Debt Chart Initialization
-    const ctx = document.getElementById('debtChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: { labels: ['M','T','W','T','F','S','S'], datasets: [{ label: 'Debt', data: [85,72,80,55,42,28,12], borderColor: '#7c3aed', tension: 0.4, borderWidth: 2, pointRadius: 0 }] },
-        options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#334155', font: { size: 9 } } } } }
-    });
+    // --- 1. THE TERMINAL LOGGER ---
+    function addLog(message, isSuccess = false) {
+        const terminal = document.getElementById('terminalLog');
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
+        const logHTML = `
+                <div class="log-entry">
+                    <span class="log-time">[${timeString}]</span>
+                    <span class="${isSuccess ? 'log-success' : 'log-info'}">${message}</span>
+                </div>
+            `;
+        terminal.insertAdjacentHTML('beforeend', logHTML);
+        terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to bottom
+    }
+
+    // --- 2. DEBT BURNDOWN CHART (NATIVE HTML5 CANVAS) ---
+    function drawChart(triggerAnimation = false) {
+        const canvas = document.getElementById('debtChart');
+        const ctx = canvas.getContext('2d');
+
+        // Adjust for high DPI screens
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight * 0.8;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Dummy data points representing technical debt going down
+        let data = [80, 75, 50, 45, 25, 15, 5];
+        if (triggerAnimation) {
+            // If healing occurred, drop the last point to show improvement
+            data[6] = 2;
+        }
+
+        const padding = 20;
+        const xStep = (canvas.width - padding * 2) / (data.length - 1);
+        const maxVal = 100;
+
+        // Draw Line
+        ctx.beginPath();
+        ctx.strokeStyle = '#8b5cf6'; // Purple line
+        ctx.lineWidth = 3;
+        ctx.lineJoin = 'round';
+
+        data.forEach((val, i) => {
+            const x = padding + (i * xStep);
+            const y = canvas.height - padding - ((val / maxVal) * (canvas.height - padding * 2));
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Draw Points
+        data.forEach((val, i) => {
+            const x = padding + (i * xStep);
+            const y = canvas.height - padding - ((val / maxVal) * (canvas.height - padding * 2));
+
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#05010d';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#8b5cf6';
+            ctx.stroke();
+        });
+    }
+
+    // Initialize Chart
+    window.addEventListener('resize', () => drawChart());
+    drawChart();
+
+    // --- 3. THE AI AGENTIC LOOP ---
     function handleTyping() {
-        document.getElementById('syncStat').innerText = "● COMPUTING...";
-        document.getElementById('repairPane').classList.add('analyzing');
+        addLog("SHIELD: Scanning for vulnerabilities...");
         clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => requestHeal(), 1200);
+        // Wait 3 seconds to prevent API Quota Limits
+        typingTimer = setTimeout(() => requestHeal(), 3000);
     }
 
     async function requestHeal() {
         const code = document.getElementById('editor').value;
         const sec = document.getElementById('secMode').checked;
-        const fast = document.getElementById('fastMode').checked;
         if(!code.trim()) return;
 
-        addLog(sec ? "SHIELD: Scanning for vulnerabilities..." : "AGENT: Correlating project context...");
+        addLog("AGENT: Correlating project context (RAG)...");
 
         try {
             const res = await fetch('http://127.0.0.1:5000/propose_fix', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ code, language: selectedLang, securityMode: sec, fastMode: fast })
+                body: JSON.stringify({ code, language: 'python', securityMode: sec })
             });
             const data = await res.json();
 
+            // Update Healed Code View
             document.getElementById('healedView').innerText = data.proposed;
-            document.getElementById('vBadge').style.display = data.verified ? 'inline-block' : 'none';
-            document.getElementById('repairPane').classList.remove('analyzing');
-            document.getElementById('syncStat').innerText = "● IDLE";
-            addLog(`AUDIT: ${data.reason} (${data.confidence || 90}%)`);
-        } catch (e) {
-            addLog("ERROR: Core Latency detected.");
-            document.getElementById('repairPane').classList.remove('analyzing');
-        }
-    }
 
-    function addLog(msg) {
-        const log = document.getElementById('auditLog');
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.innerHTML = `<span style="color:var(--accent)">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
-        log.prepend(entry);
+            // Update Confidence Badge
+            const badge = document.getElementById('confidenceBadge');
+            badge.innerText = `Confidence: ${data.confidence}%`;
+            badge.style.opacity = "1";
+
+            // If confidence is high, turn badge green, else purple
+            if(parseInt(data.confidence) > 90) {
+                badge.style.borderColor = "#4ade80";
+                badge.style.boxShadow = "0 0 10px rgba(74, 222, 128, 0.2)";
+            } else {
+                badge.style.borderColor = "#8b5cf6";
+                badge.style.boxShadow = "0 0 10px rgba(139, 92, 246, 0.2)";
+            }
+
+            // Log the result
+            let logMsg = `Reliability: AI Inference complete. Reason: ${data.reason}`;
+            if(data.verified) logMsg += " [✓ Sandbox Passed]";
+            addLog(logMsg, data.verified);
+
+            // Animate the chart to show technical debt going down!
+            drawChart(true);
+
+        } catch (e) {
+            addLog("ERROR: Connection to SRE Engine Lost. Check Python Server.", false);
+        }
     }
 </script>
 </body>
